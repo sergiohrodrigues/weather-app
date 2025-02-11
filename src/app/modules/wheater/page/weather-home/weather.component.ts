@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
+import { MessageService } from 'primeng/api';
 import { Subject, takeUntil } from 'rxjs';
 import { WeatherDatas } from 'src/app/models/interfaces/WeatherDatas';
 import { WheatherService } from 'src/app/services/wheather.service';
@@ -37,30 +38,37 @@ export class WeatherComponent  implements OnInit, OnDestroy
     this.getWeatherDatas(this.initialCityName)
   }
 
-constructor(private weatherService: WheatherService){}
+  constructor(private weatherService: WheatherService, private messageService: MessageService){}
 
-getWeatherDatas(city: string): void{
-  this.weatherService
-  .getWeatherDatas(city)
-  .pipe(takeUntil(this.destroy$))
-  .subscribe({
-    next: (response) => {
-      response && (this.weatherDatas = response);
-      console.log(this.weatherDatas)
-    },
-    error: (error) => console.log(error)
-  })
-}
+  getWeatherDatas(city: string): void{
+    this.weatherService
+    .getWeatherDatas(city)
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (response) => {
+        response && (this.weatherDatas = response);
+      },
+      error: (error) => {
+        console.log(error)
+        this.messageService.clear();
+        this.messageService.add({
+          severity: 'error',
+          summary: "Erro",
+          detail: 'Busca não encontrada',
+          life: 3000
+        })
+      }
+    })
+  }
 
-onSubmit(): void{
-  this.getWeatherDatas(this.initialCityName);
-  this.initialCityName = '';
-}
+  onSubmit(): void{
+    this.getWeatherDatas(this.initialCityName);
+    this.initialCityName = '';
+  }
 
-
-ngOnDestroy(): void {
-  this.destroy$.next();
-  this.destroy$.complete();
-}
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
 }
